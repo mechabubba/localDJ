@@ -1,0 +1,146 @@
+<% layout("./layout.eta") %>
+
+<div id="readme">
+    <h1>🎧 localDJ</h1>
+    <p>The Spotify DJ for your MP3s. Submit your requests to the DJ below!</p>
+</div>
+<div id="inputs">
+    <input disabled type="text" id="messageInput" class="input-box" placeholder="whatcha wanna hear, boss?">
+    <button class="send-button" id="sendButton">shoot</button>
+</div>
+<div id="messages"></div>
+<details id="tracklist"></details>
+
+<audio id="audioPlayer" controls hidden></audio>
+
+<script>
+    const ws = new WebSocket("ws://localhost:8080");
+
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const statusDiv = document.getElementById('status');
+
+    const messages = document.getElementById("messages");
+    const audioPlayer = document.getElementById("audioPlayer");
+    const tracklist = document.getElementById("tracklist");
+
+    const tracks = [];
+
+    ws.onopen = () => {
+        messageInput.disabled = false;
+        const el = document.createElement("div");
+        el.innerText = "Connected to WebSocket server! :)";
+        el.className = "message system";
+        messages.appendChild(el);
+    };
+
+    ws.onclose = () => {
+        messageInput.disabled = true;
+        const el = document.createElement("div");
+        el.innerText = "Disconnected from WebSocket server. :(";
+        el.className = "message system";
+        messages.appendChild(el);
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket Error:', error);
+        const el = document.createElement("div");
+        el.innerText = "WebSocket error; " + error.message;
+        el.className = "message system";
+        messages.appendChild(el);
+    };
+
+    ws.onmessage = async (evt) => {
+        const el = document.createElement("div");
+        
+        let resp = evt.data;
+        try {
+            resp = JSON.parse(resp);
+        } catch(e) {
+            console.error(e);
+            return;
+        }
+
+        console.log("Got something;");
+        console.log(resp);
+        if (("type" in resp) && resp.type == "message") {
+            el.innerText = resp.message;
+            el.className = "message response";
+            messages.appendChild(el);
+            if ("song" in resp) {
+                tracks.push(...resp["song"]);
+                renderTracklist();
+            }
+
+            if (resp.has_voice) {
+                try {
+                    // Fetch the audio file from the endpoint
+                    const voice = await fetch(`/voice/${resp.id}`);
+
+                    if (!voice.ok) {
+                        throw new Error('Failed to fetch audio');
+                    }
+
+                    // Convert the response to a blob
+                    const voiceBlob = await voice.blob();
+
+                    // Create a URL for the audio blob
+                    const voiceURL = URL.createObjectURL(voiceBlob);
+
+                    // Set the audio source and play
+                    const audioPlayer = document.getElementById('audioPlayer');
+                    audioPlayer.src = voiceURL;
+                    audioPlayer.play();
+                } catch (error) {
+                    console.error('Error fetching and playing audio:', error);
+                }
+            }
+        }
+    };
+
+    function renderTracklist() {
+        tracklist.innerHTML = "";
+        const summary = document.createElement("summary");
+        summary.innerText = "Tracklist";
+        tracklist.appendChild(summary);
+
+        if (tracks.length) {
+            const ol = document.createElement("ol");
+            for (track of tracks) {
+                const li = document.createElement("li");
+                li.innerText = `${track.artist} - ${track.title}`;
+                ol.appendChild(li);
+            }
+            tracklist.appendChild(ol);
+        } else {
+            tracklist.innerHTML += "<p>No tracks currently. :(</p>";
+        }
+    }
+
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+            const el = document.createElement("div");
+            el.innerText = message;
+            el.className = "message query";
+            messages.appendChild(el);
+            
+            ws.send(`{"type": "query", "message": "${message.replace(/"/g, '\\"')}"}`); // kinda hacky
+            console.log('Sent:', message);
+            messageInput.value = '';
+        }
+    }
+
+    // Send message on button click
+    sendButton.addEventListener('click', sendMessage);
+
+    // Send message on Enter key press
+    messageInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    renderTracklist();
+</script>

@@ -1,0 +1,26 @@
+{
+  "name": "local_dj",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "type": "module",
+  "license": "ISC",
+  "dependencies": {
+    "@tinyhttp/app": "^2.5.0",
+    "dotenv": "^16.4.7",
+    "eta": "^2.0.1",
+    "milliparsec": "^5.0.1",
+    "openai": "^4.76.3",
+    "sirv": "^3.0.0",
+    "tiktoken": "^1.0.17",
+    "uuid": "^11.0.3",
+    "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8"
+  }
+}

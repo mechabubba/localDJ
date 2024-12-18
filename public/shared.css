@@ -1,0 +1,117 @@
+.hidden { display: none !important; }
+
+:root {
+    --accent-color: hsl(211, 100%, 50%);
+    --flare-color: rgba(0, 255, 255, 0.75);
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    background: black;
+}
+
+/* General body styling */
+body {
+    display: flex;
+    flex-direction: column;
+    font-family: monospace;
+    padding: 2em;
+    color: #fff;
+}
+
+#inputs {
+    display: flex;
+    align-items: center;
+}
+
+.input-box, .send-button {
+    font-family: monospace;
+}
+
+.input-box {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 16px;
+}
+
+.send-button {
+    margin-left: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+}
+
+.send-button:hover {
+    filter: brightness(0.7);
+}
+
+#messages {
+    display: flex;
+    flex-direction: column;
+    margin: 2em 0;
+    overflow-y: auto; /* Adds a scrollbar when content exceeds available space */
+}
+
+@keyframes flare {
+    0% {
+        background-color: var(--flare-color);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.message {
+    margin-bottom: 1em;
+}
+
+.message:not(.system) {
+    font-size: 18px;
+    padding: 0.5em;
+    border: 1px solid white;
+    border-radius: 16px;
+    max-width: 50%;
+    overflow: hidden;
+}
+
+.message.system {
+    opacity: 50%;
+    font-style: italic;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.message.response {
+    margin-right: auto;
+    animation: flare 0.75s ease-out;
+}
+
+.message.query {
+    margin-left: auto;
+}
+
+#tracklist {
+	position: fixed;
+    padding: 0.5em;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	background-color: hsla(0, 0%, 25%, 0.9);
+	max-height: 16em;
+    overflow-y: scroll;
+}
+
+summary {
+	font-weight: bold;
+	cursor: pointer;
+}
